@@ -1,0 +1,14 @@
+FROM python:3.11-slim
+
+LABEL purpose="Multi-Agent Dev System — safe code execution sandbox"
+
+# Install only what's needed for running pytest
+RUN pip install --no-cache-dir \
+    pytest==8.3.0 \
+    pytest-cov==5.0.0
+
+# Set the workspace directory
+WORKDIR /workspace
+
+# Default command — run pytest
+CMD ["pytest", "/workspace/tests/", "-v", "--tb=short"]

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Agent Dev System — AI Engineer Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="dark-theme">
+    <div class="glass-background"></div>
+    
+    <header class="navbar">
+        <div class="logo">
+            <span class="logo-icon">🤖</span>
+            <h1>Multi-Agent <span class="highlight">Dev System</span></h1>
+        </div>
+        <div class="health-status">
+            <div id="check-google" class="health-chip loading">
+                <span class="indicator"></span> Google AI
+            </div>
+            <div id="check-github" class="health-chip loading">
+                <span class="indicator"></span> GitHub API
+            </div>
+            <div id="check-docker" class="health-chip loading">
+                <span class="indicator"></span> Docker Sandbox
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="hero">
+            <h2>Autonomously Resolve <span class="gradient-text">GitHub Issues</span></h2>
+            <p>Paste a GitHub issue URL below. Specialised agents will research, fix, and test the code before opening a PR.</p>
+            
+            <form id="run-form" class="input-group">
+                <input type="url" id="issue-url" placeholder="https://github.com/owner/repo/issues/123" required>
+                <button type="submit" id="submit-btn" class="primary-btn">
+                    <span class="btn-text">Run Pipeline</span>
+                    <span class="loader"></span>
+                </button>
+            </form>
+        </section>
+
+        <section id="pipeline-monitor" class="monitor-card hidden">
+            <div class="card-header">
+                <h3>Pipeline Status: <span id="pipeline-status-text">Initializing...</span></h3>
+                <div class="retry-badge">Retries: <span id="retry-count">0</span></div>
+            </div>
+
+            <div class="agent-stepper">
+                <div class="step" data-status="researching">
+                    <div class="step-icon">🔍</div>
+                    <div class="step-label">Researcher</div>
+                    <div class="step-bar"></div>
+                </div>
+                <div class="step" data-status="coding">
+                    <div class="step-icon">💻</div>
+                    <div class="step-label">Coder</div>
+                    <div class="step-bar"></div>
+                </div>
+                <div class="step" data-status="testing">
+                    <div class="step-icon">🧪</div>
+                    <div class="step-label">Tester</div>
+                    <div class="step-bar"></div>
+                </div>
+                <div class="step" data-status="writing_pr">
+                    <div class="step-icon">🚀</div>
+                    <div class="step-label">PR Writer</div>
+                </div>
+            </div>
+
+            <div class="terminal-container">
+                <div class="terminal-header">
+                    <div class="dots">
+                        <span></span><span></span><span></span>
+                    </div>
+                    <div class="terminal-title">Agent Logs</div>
+                </div>
+                <div id="terminal-body" class="terminal-body">
+                    <p class="log-line info">> Pipeline started for issue...</p>
+                </div>
+            </div>
+
+            <div id="result-area" class="result-area hidden">
+                <div class="success-card">
+                    <h4>✅ Issue Resolved Successfully!</h4>
+                    <p id="fix-explanation"></p>
+                    <a id="pr-link" href="#" target="_blank" class="secondary-btn">View Pull Request</a>
+                </div>
+            </div>
+
+            <div id="error-area" class="error-area hidden">
+                <div class="failure-card">
+                    <h4>❌ Pipeline Failed</h4>
+                    <p id="failure-reason"></p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <p>Built with <strong>LangGraph</strong> & <strong>Gemini 2.0 Flash</strong> for Advanced AI Engineering</p>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>
