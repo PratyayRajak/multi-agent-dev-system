@@ -31,3 +31,5 @@ pipeline_output.json
 # OS
 .DS_Store
 Thumbs.db
+
+runs_log.csv
