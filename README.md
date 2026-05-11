@@ -5,6 +5,7 @@
 ![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)
 ![LangGraph](https://img.shields.io/badge/LangGraph-StateGraph-green.svg)
 ![Gemini](https://img.shields.io/badge/LLM-Gemini%202.0%20Flash-orange.svg)
+[![CI](https://github.com/PratyayRajak/multi-agent-dev-system/actions/workflows/ci.yml/badge.svg)](https://github.com/PratyayRajak/multi-agent-dev-system/actions/workflows/ci.yml)
 
 ---
 
@@ -43,7 +44,7 @@ All agents read from and write to a **shared `PipelineState`** object — like a
 ### 1. Clone and install
 
 ```bash
-git clone https://github.com/your-username/multi-agent-dev-system.git
+git clone https://github.com/PratyayRajak/multi-agent-dev-system.git
 cd multi-agent-dev-system
 python -m venv venv
 venv\Scripts\activate        # Windows
@@ -177,6 +178,8 @@ Once `LANGCHAIN_TRACING_V2=true` and `LANGCHAIN_API_KEY` are set, **all agent ca
 - Total pipeline latency
 - Retry count and failure reasons
 
+> 📸 **LangSmith Trace** — *(add screenshot here after first real run)*
+
 ---
 
 ## 🐳 Docker Security
@@ -206,6 +209,18 @@ The sandbox container runs AI-generated code with these constraints:
 
 **What makes retry logic hard?**
 > Naive retries just re-run the Coder. The right approach passes the specific `failure_reason` so the Coder makes a targeted fix, not a random guess.
+
+---
+
+## 📊 Results
+
+| Metric | Value |
+|--------|-------|
+| Issues tested | *(coming soon)* |
+| Success rate | *(coming soon)* |
+| Avg time-to-PR | *(coming soon)* |
+
+> 🎬 **Demo:** *(Loom walkthrough link coming soon)*
 
 ---
 
