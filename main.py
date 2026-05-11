@@ -17,6 +17,7 @@ import argparse
 import json
 import logging
 import sys
+import time
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -26,6 +27,7 @@ load_dotenv()
 
 from config import LOG_FORMAT, LOG_LEVEL, run_all_health_checks
 from src.graph.pipeline import run_pipeline
+from runs_log import log_run, print_summary
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +39,7 @@ def main():
     Args (CLI):
         --issue: GitHub issue URL (required)
         --verbose: Enable debug logging (optional)
+        --mock: Run without real API calls (optional)
     """
     parser = argparse.ArgumentParser(
         description="Multi-Agent Software Engineering System",
@@ -91,17 +94,31 @@ def main():
         if not health.get("docker"):
             print("\n[WARNING] Docker is not available. Sandbox testing will be skipped.")
             print("   (To enable safe testing, start Docker Desktop and retry)\n")
-        
+
         print("[OK] Health checks passed.\n")
     print("Starting pipeline...\n")
 
-    # Run the pipeline
+    # Run the pipeline — track time for metrics
+    start_time = time.time()
     try:
         result = run_pipeline(args.issue, use_mock=args.mock)
     except Exception as e:
+        elapsed = time.time() - start_time
         logger.error("Pipeline crashed: %s", e, exc_info=True)
         print(f"\n[ERROR] Pipeline crashed: {e}")
+
+        # Log the crash
+        log_run(
+            issue_url=args.issue,
+            status="failed",
+            time_taken_seconds=elapsed,
+            retry_count=0,
+            failure_reason=f"Pipeline crashed: {str(e)[:200]}",
+        )
+        print_summary()
         sys.exit(1)
+
+    elapsed = time.time() - start_time
 
     # Display results
     status = result.get("pipeline_status", "unknown")
@@ -113,18 +130,46 @@ def main():
         print(f"  [Link] PR URL: {pr_url}")
         print(f"  [Fix] explanation: {result.get('fix_explanation', 'N/A')[:200]}")
         print(f"  [Test] results: {result.get('execution_result', {}).get('tests_passed', 0)} passed")
+
+        # Log success
+        log_run(
+            issue_url=args.issue,
+            status="success",
+            time_taken_seconds=elapsed,
+            retry_count=result.get("retry_count", 0),
+            pr_url=pr_url,
+        )
+
     elif status == "failed":
         print("  [FAIL] FAILED — Could not resolve the issue automatically.")
         print(f"  Retries: {result.get('retry_count', 0)}")
         print(f"  Reason: {result.get('failure_reason', 'unknown')[:300]}")
+
+        # Log failure
+        log_run(
+            issue_url=args.issue,
+            status="failed",
+            time_taken_seconds=elapsed,
+            retry_count=result.get("retry_count", 0),
+            failure_reason=result.get("failure_reason", "unknown")[:200],
+        )
+
     else:
         print(f"  [WARN] Unexpected status: {status}")
+        log_run(
+            issue_url=args.issue,
+            status="failed",
+            time_taken_seconds=elapsed,
+            failure_reason=f"Unexpected status: {status}",
+        )
 
     print("=" * 70)
 
+    # Print running summary after every run
+    print_summary()
+
     # Save full state to file for debugging
     output_file = Path("pipeline_output.json")
-    # Serialize the result, handling non-serializable types
     serializable = {}
     for k, v in result.items():
         try:
@@ -134,7 +179,7 @@ def main():
             serializable[k] = str(v)
 
     output_file.write_text(json.dumps(serializable, indent=2), encoding="utf-8")
-    print(f"\nFull pipeline state saved to: {output_file}")
+    print(f"Full pipeline state saved to: {output_file}")
 
     return 0 if status == "done" else 1
 
