@@ -1,0 +1,27 @@
+# Multi-Agent Dev System — Runtime Configuration
+# Override any value here without touching code.
+# config.py loads this file at startup and merges with defaults.
+
+pipeline:
+  max_retries: 3            # How many times Coder retries after test failure
+  timeout_seconds: 300      # Max time for entire pipeline per issue (5 min)
+  mock_mode: false          # Set true to run without real API calls (for testing)
+
+llm:
+  model: "gemini-2.0-flash"
+  temperature:
+    researcher: 0.1         # Low — factual file search, stay precise
+    coder: 0.2              # Low — code generation, stay deterministic
+    tester: 0.1             # Low — test generation, stay strict
+    pr_writer: 0.4          # Slightly higher — PR descriptions can be expressive
+
+docker:
+  memory_limit: "256m"      # Max RAM per sandbox container
+  cpu_limit: 0.5            # Max CPU cores per sandbox container
+  timeout_seconds: 30       # Max time to run tests inside container
+  image: "rag-sandbox"      # Docker image name
+
+logging:
+  level: "INFO"             # DEBUG | INFO | WARNING | ERROR
+  log_to_file: false        # Set true to also write logs to runs.log
+  log_file: "runs.log"
