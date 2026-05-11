@@ -1,30 +1,53 @@
 """
 config.py — All constants for the Multi-Agent Software Engineering System.
 Every module imports from here. Never hardcode values elsewhere.
+Values in config.yaml override the defaults defined here.
 """
 
 import logging
 import os
 import subprocess
+import yaml
+
+# ---------------------------------------------------------------------------
+# Load config.yaml (runtime overrides)
+# ---------------------------------------------------------------------------
+_config_path = os.path.join(os.path.dirname(__file__), "config.yaml")
+_cfg = {}
+if os.path.exists(_config_path):
+    with open(_config_path, "r") as f:
+        _cfg = yaml.safe_load(f) or {}
+
+def _get(keys: str, default):
+    """Dot-notation read from loaded config. e.g. _get('llm.model', 'gemini-2.0-flash')"""
+    val = _cfg
+    for key in keys.split("."):
+        if isinstance(val, dict):
+            val = val.get(key)
+        else:
+            return default
+    return val if val is not None else default
 
 # ---------------------------------------------------------------------------
 # LLM Configuration (Gemini)
 # ---------------------------------------------------------------------------
-GEMINI_MODEL = "gemini-2.0-flash"
+GEMINI_MODEL = _get("llm.model", "gemini-2.0-flash")
 
 AGENT_TEMPERATURES = {
     "orchestrator": 0.0,
-    "researcher": 0.0,
-    "coder": 0.1,
-    "tester": 0.0,
-    "pr_writer": 0.2,
+    "researcher": _get("llm.temperature.researcher", 0.0),
+    "coder":       _get("llm.temperature.coder", 0.1),
+    "tester":      _get("llm.temperature.tester", 0.0),
+    "pr_writer":   _get("llm.temperature.pr_writer", 0.2),
 }
 
 # ---------------------------------------------------------------------------
 # Pipeline Behaviour
 # ---------------------------------------------------------------------------
-MAX_RETRY_COUNT = 3           # Maximum fix attempts before giving up
+MAX_RETRY_COUNT  = _get("pipeline.max_retries", 3)
 MAX_FILES_TO_READ = 10        # Max files the Research Agent reads per run
+MOCK_MODE        = _get("pipeline.mock_mode", False)
+PIPELINE_TIMEOUT = _get("pipeline.timeout_seconds", 300)
 
 # Valid pipeline status values
 PIPELINE_STATUSES = {
@@ -40,29 +63,36 @@ PIPELINE_STATUSES = {
 # ---------------------------------------------------------------------------
 # Docker Sandbox
 # ---------------------------------------------------------------------------
-DOCKER_IMAGE_NAME = "rag-sandbox"
-DOCKER_DOCKERFILE = "docker/Dockerfile.sandbox"
-DOCKER_MEMORY_LIMIT = "256m"
-DOCKER_CPU_LIMIT = "0.5"
-DOCKER_TIMEOUT_SECONDS = 30
-DOCKER_WORKSPACE_DIR = "/workspace"
+DOCKER_IMAGE_NAME       = _get("docker.image", "rag-sandbox")
+DOCKER_DOCKERFILE       = "docker/Dockerfile.sandbox"
+DOCKER_MEMORY_LIMIT     = _get("docker.memory_limit", "256m")
+DOCKER_CPU_LIMIT        = str(_get("docker.cpu_limit", 0.5))
+DOCKER_TIMEOUT_SECONDS  = _get("docker.timeout_seconds", 30)
+DOCKER_WORKSPACE_DIR    = "/workspace"
 
 # ---------------------------------------------------------------------------
 # GitHub
 # ---------------------------------------------------------------------------
-GITHUB_BASE_BRANCH = "main"
-GITHUB_FIX_BRANCH_PREFIX = "fix/issue-"
+GITHUB_BASE_BRANCH              = "main"
+GITHUB_FIX_BRANCH_PREFIX        = "fix/issue-"
 GITHUB_RATE_LIMIT_BACKOFF_SECONDS = 60
 
 # ---------------------------------------------------------------------------
 # Logging
 # ---------------------------------------------------------------------------
-LOG_LEVEL = logging.INFO
+_log_level_map = {
+    "DEBUG": logging.DEBUG,
+    "INFO": logging.INFO,
+    "WARNING": logging.WARNING,
+    "ERROR": logging.ERROR,
+}
+LOG_LEVEL  = _log_level_map.get(_get("logging.level", "INFO"), logging.INFO)
 LOG_FORMAT = "%(asctime)s | %(levelname)-8s | %(name)s | %(message)s"
+LOG_TO_FILE = _get("logging.log_to_file", False)
+LOG_FILE    = _get("logging.log_file", "runs.log")
 
 logging.basicConfig(level=LOG_LEVEL, format=LOG_FORMAT)
 logger = logging.getLogger("config")
-
 
 # ---------------------------------------------------------------------------
 # LangSmith Observability (optional)
